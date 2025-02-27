@@ -21,42 +21,76 @@ import { useAppSelector } from "../../app/hooks";
 
 import { Certification } from "../../types/types";
 
+import { useGetCertificationsQuery } from "../../features/api/apiSlice";
+
 const Certifications = () => {
   const [showForm, setShowForm] = useState<boolean>(false);
-  const [certifications, setCertifications] = useState<Certification[]>([]);
-  const [showSpinner, setShowSpinner] = useState<boolean>(true);
+  // const [certifications, setCertifications] = useState<Certification[]>([]);
+  // const [showSpinner, setShowSpinner] = useState<boolean>(true);
 
   const user = useAppSelector((state) => state.auth);
 
-  useEffect(() => {
-    if (user && user.userId) {
-      certificationsService
-        .getAll(user.userId)
-        .then((data) => setCertifications(data))
-        .catch((err) => console.log(err))
-        .finally(() => setShowSpinner(false));
-    }
-  }, [user]);
+  const {
+    data: certifications = [],
+    isLoading,
+    isSuccess,
+    isError,
+    error,
+  } = useGetCertificationsQuery(user.userId);
 
-  if (showSpinner) {
+  // useEffect(() => {
+  //   if (user && user.userId) {
+  //     certificationsService
+  //       .getAll(user.userId)
+  //       .then((data) => setCertifications(data))
+  //       .catch((err) => console.log(err))
+  //       .finally(() => setShowSpinner(false));
+  //   }
+  // }, [user]);
+
+  // if (showSpinner) {
+  //   return <CircularProgress />;
+  // }
+
+  let content: React.ReactNode;
+
+  if (isLoading) {
     return <CircularProgress />;
+  } else if (isSuccess) {
+    content = certifications.map((certification) => (
+      <TableRow key={certification.id}>
+        <TableCell>{certification.organization}</TableCell>
+        <TableCell>{certification.name}</TableCell>
+        <TableCell>{certification.issueDate}</TableCell>
+        <TableCell>{certification.expiryDate}</TableCell>
+        <TableCell>
+          <a href={`//${certification.url}`}>{certification.url}</a>
+        </TableCell>
+      </TableRow>
+    ));
+  } else if (isError) {
+    return <div>{error.toString()}</div>;
   }
+  // else if(isError) {
+  //   console.log(error.toString());
+  //   content = <div>{error.toString()}</div>
+  // }
 
-  const certificationsMap = certifications.map((certification) => (
-    <TableRow key={certification.id}>
-      <TableCell>{certification.organization}</TableCell>
-      <TableCell>{certification.name}</TableCell>
-      <TableCell>{certification.issueDate}</TableCell>
-      <TableCell>{certification.expiryDate}</TableCell>
-      <TableCell><a href={`//${certification.url}`}>{certification.url}</a></TableCell>
-    </TableRow>
-  ));
+  // const certificationsMap = certifications.map((certification) => (
+  //   <TableRow key={certification.id}>
+  //     <TableCell>{certification.organization}</TableCell>
+  //     <TableCell>{certification.name}</TableCell>
+  //     <TableCell>{certification.issueDate}</TableCell>
+  //     <TableCell>{certification.expiryDate}</TableCell>
+  //     <TableCell><a href={`//${certification.url}`}>{certification.url}</a></TableCell>
+  //   </TableRow>
+  // ));
 
   return (
     <>
       <div>
         <Stack direction="column" spacing={2}>
-          <Typography variant="h3">Certificates</Typography>
+          <Typography variant="h3">Certifications</Typography>
           {showForm ? (
             <AddCertificationForm setShowForm={setShowForm} />
           ) : (
@@ -80,7 +114,10 @@ const Certifications = () => {
                   <TableCell>URL</TableCell>
                 </TableRow>
               </TableHead>
-              <TableBody>{certificationsMap}</TableBody>
+              <TableBody>
+                {content}
+                {/* {certificationsMap} */}
+              </TableBody>
             </Table>
           </TableContainer>
         </Stack>

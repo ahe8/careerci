@@ -10,7 +10,7 @@ export const useAppSelector = useSelector.withTypes<RootState>()
 
 
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
-import { setUserInfo, clearUserInfo } from '../reducers/authReducer'
+import { setUserInfo, clearUserInfo } from '../reducers/usersReducer'
 
 export const useAuth = () => {
     const auth = getAuth();
